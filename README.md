@@ -1,3 +1,10 @@
+# binspec
+
+a binary parser-printer generator
+
+example:
+
+```typescript
 import { enumerated, f64, struct, u64 } from "../src/types.ts"
 
 const pingUnix = struct("PingUnix")
@@ -12,3 +19,6 @@ const ping = enumerated("Ping")
 	.variant(420, pingSecondsSince2000)
 
 export default [ping]
+```
+
+then compile it with `binspec ./example.ts ./example.gen.ts`

@@ -14,32 +14,32 @@ function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {
 }
 
 /*
-	Fused
+	Ping
 */
-export type Fused = Goober | Goober2
-export function parseFused(parseInput: IO | Uint8Array): Fused {
+export type Ping = PingUnix | PingSecondsSince2000
+export function parsePing(parseInput: IO | Uint8Array): Ping {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
 	const sign = parseUnsigned8(context)
-	if (sign === 12) {
-		return parseGoober(context)
+	if (sign === 0) {
+		return parsePingUnix(context)
 	}
-	if (sign === 24) {
-		return parseGoober2(context)
+	if (sign === 420) {
+		return parsePingSecondsSince2000(context)
 	}
 	throw new Error("invalid variant")
 }
-export function writeFused(
-	val: Fused,
+export function writePing(
+	val: Ping,
 	context: IO = createIOContext(),
 ): Uint8Array {
-	if (val.type === "Goober") {
-		writeUnsigned8(12, context)
-		writeGoober(val, context)
-	} else if (val.type === "Goober2") {
-		writeUnsigned8(24, context)
-		writeGoober2(val, context)
+	if (val.type === "PingUnix") {
+		writeUnsigned8(0, context)
+		writePingUnix(val, context)
+	} else if (val.type === "PingSecondsSince2000") {
+		writeUnsigned8(420, context)
+		writePingSecondsSince2000(val, context)
 	} else {
 		throw new Error("invalid variant")
 	}
@@ -65,62 +65,24 @@ export function writeUnsigned8(
 }
 
 /*
-	Goober
+	PingUnix
 */
-export type Goober = {
-	a: number
-	b: number
-	c: number
-	d: number
-	e: number
-	type: "Goober"
-}
-export function parseGoober(parseInput: IO | Uint8Array): Goober {
+export type PingUnix = { timestampNs: number; type: "PingUnix" }
+export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	const [a, b, c, d, e] = [
-		parseUnsigned8(context),
-		parseUnsigned32(context),
-		parseUnsigned64(context),
-		parseFloat64(context),
-		parseFloat32(context),
-	]
-	return { a, b, c, d, e, type: "Goober" }
+	const [timestampNs] = [parseUnsigned64(context)]
+	return { timestampNs, type: "PingUnix" }
 }
-export function writeGoober(
-	val: Goober,
+export function writePingUnix(
+	val: PingUnix,
 	context: IO = createIOContext(),
 ): Uint8Array {
-	if (val.type !== "Goober") {
-		throw new Error("Expected an object with type 'Goober'")
+	if (val.type !== "PingUnix") {
+		throw new Error("Expected an object with type 'PingUnix'")
 	}
-	writeUnsigned8(val.a, context)
-	writeUnsigned32(val.b, context)
-	writeUnsigned64(val.c, context)
-	writeFloat64(val.d, context)
-	writeFloat32(val.e, context)
-	return context.buffer.slice(0, context.ptr)
-}
-
-/*
-	Unsigned32
-*/
-export type Unsigned32 = number
-export function parseUnsigned32(parseInput: IO | Uint8Array): Unsigned32 {
-	const context = parseInput instanceof Uint8Array
-		? createIOContext(parseInput)
-		: parseInput
-	return context.dataView.getUint32(
-		(context.ptr += 4) - 4,
-		context.littleEndian,
-	)
-}
-export function writeUnsigned32(
-	val: Unsigned32,
-	context: IO = createIOContext(),
-): Uint8Array {
-	context.dataView.setUint32((context.ptr += 4) - 4, val, context.littleEndian)
+	writeUnsigned64(val.timestampNs, context)
 	return context.buffer.slice(0, context.ptr)
 }
 
@@ -149,6 +111,33 @@ export function writeUnsigned64(
 }
 
 /*
+	PingSecondsSince2000
+*/
+export type PingSecondsSince2000 = {
+	secondsSince2000: number
+	type: "PingSecondsSince2000"
+}
+export function parsePingSecondsSince2000(
+	parseInput: IO | Uint8Array,
+): PingSecondsSince2000 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const [secondsSince2000] = [parseFloat64(context)]
+	return { secondsSince2000, type: "PingSecondsSince2000" }
+}
+export function writePingSecondsSince2000(
+	val: PingSecondsSince2000,
+	context: IO = createIOContext(),
+): Uint8Array {
+	if (val.type !== "PingSecondsSince2000") {
+		throw new Error("Expected an object with type 'PingSecondsSince2000'")
+	}
+	writeFloat64(val.secondsSince2000, context)
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
 	Float64
 */
 export type Float64 = number
@@ -166,65 +155,5 @@ export function writeFloat64(
 	context: IO = createIOContext(),
 ): Uint8Array {
 	context.dataView.setFloat64((context.ptr += 8) - 8, val, context.littleEndian)
-	return context.buffer.slice(0, context.ptr)
-}
-
-/*
-	Float32
-*/
-export type Float32 = number
-export function parseFloat32(parseInput: IO | Uint8Array): Float32 {
-	const context = parseInput instanceof Uint8Array
-		? createIOContext(parseInput)
-		: parseInput
-	return context.dataView.getFloat32(
-		(context.ptr += 4) - 4,
-		context.littleEndian,
-	)
-}
-export function writeFloat32(
-	val: Float32,
-	context: IO = createIOContext(),
-): Uint8Array {
-	context.dataView.setFloat32((context.ptr += 4) - 4, val, context.littleEndian)
-	return context.buffer.slice(0, context.ptr)
-}
-
-/*
-	Goober2
-*/
-export type Goober2 = {
-	a: number
-	b: number
-	c: number
-	d: number
-	e: number
-	type: "Goober2"
-}
-export function parseGoober2(parseInput: IO | Uint8Array): Goober2 {
-	const context = parseInput instanceof Uint8Array
-		? createIOContext(parseInput)
-		: parseInput
-	const [a, b, c, d, e] = [
-		parseUnsigned8(context),
-		parseUnsigned32(context),
-		parseUnsigned64(context),
-		parseFloat64(context),
-		parseFloat32(context),
-	]
-	return { a, b, c, d, e, type: "Goober2" }
-}
-export function writeGoober2(
-	val: Goober2,
-	context: IO = createIOContext(),
-): Uint8Array {
-	if (val.type !== "Goober2") {
-		throw new Error("Expected an object with type 'Goober2'")
-	}
-	writeUnsigned8(val.a, context)
-	writeUnsigned32(val.b, context)
-	writeUnsigned64(val.c, context)
-	writeFloat64(val.d, context)
-	writeFloat32(val.e, context)
 	return context.buffer.slice(0, context.ptr)
 }
