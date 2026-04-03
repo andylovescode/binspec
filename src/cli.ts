@@ -19,6 +19,9 @@ const command = new Command()
 		await Deno.writeTextFile(resolve(Deno.cwd(), outfile), writer.write())
 	})
 
+/**
+ * Runs the main CLI
+ */
 export async function cliMain(): Promise<void> {
 	await command.parse(Deno.args)
 }

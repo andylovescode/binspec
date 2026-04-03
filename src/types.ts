@@ -93,36 +93,48 @@ function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 	}
 }
 
+/**Unsigned 8-bit integer */
 export function u8(): Type {
 	return createNumberType("u", 8)
 }
+/**Unsigned 16-bit integer */
 export function u16(): Type {
 	return createNumberType("u", 16)
 }
+/**Unsigned 32-bit integer */
 export function u32(): Type {
 	return createNumberType("u", 32)
 }
+/**Unsigned 64-bit integer */
 export function u64(): Type {
 	return createNumberType("u", 64)
 }
 
+/**32-bit float */
 export function f32(): Type {
 	return createNumberType("f", 32)
 }
+/**64-bit float */
 export function f64(): Type {
 	return createNumberType("f", 64)
 }
 
+/**signed 16-bit integer */
 export function i16(): Type {
 	return createNumberType("i", 16)
 }
+/**signed 32-bit integer */
 export function i32(): Type {
 	return createNumberType("i", 32)
 }
+/**signed 64-bit integer */
 export function i64(): Type {
 	return createNumberType("i", 64)
 }
 
+/**
+ * A sequence of types packed into an object
+ */
 export class Pack implements Type {
 	name: string
 	fields: [string, Type][] = []
@@ -187,6 +199,12 @@ export class Pack implements Type {
 		return result
 	}
 
+	/**
+	 * Add a field
+	 * @param name the name of the field to add
+	 * @param type the type of the field to add
+	 * @returns this
+	 */
 	field(name: string, type: Type): this {
 		this.fields.push([name, type])
 
@@ -194,6 +212,9 @@ export class Pack implements Type {
 	}
 }
 
+/**
+ * Semantically equivalent to a Rust enum, or a discriminated union
+ */
 export class Enum implements Type {
 	name: string
 	variants: [number, Pack][] = []
@@ -207,8 +228,24 @@ export class Enum implements Type {
 		return [this.signType, ...this.variants.map((it) => it[1])]
 	}
 
+	/**
+	 * Adds a variant to the union
+	 * @param sign the number used to indicate this union variant
+	 * @param struct the struct associated with said number
+	 * @returns this
+	 */
 	variant(sign: number, struct: Pack): this {
 		this.variants.push([sign, struct])
+		return this
+	}
+
+	/**
+	 * Represent the union variant with something other than a u8
+	 * @param type the number type used to indicate variant
+	 * @returns this
+	 */
+	prefixType(type: Type): this {
+		this.signType = type
 		return this
 	}
 
@@ -272,9 +309,12 @@ export class Enum implements Type {
 	}
 }
 
+/** Create a struct type */
 export function struct(name: string): Pack {
 	return new Pack(name)
 }
+
+/** Create a discriminated union/structured enum type */
 export function enumerated(name: string): Enum {
 	return new Enum(name)
 }
