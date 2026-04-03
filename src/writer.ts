@@ -1,4 +1,4 @@
-import { Type } from "./mod.ts"
+import type { Type } from "./mod.ts"
 
 export class TypefileWriter {
 	types: Type[] = []

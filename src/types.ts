@@ -1,5 +1,5 @@
 import { assert } from "@std/assert"
-import { IOContext, Type } from "./mod.ts"
+import type { IOContext, Type } from "./mod.ts"
 
 function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 	const power = Math.log2(bits)
