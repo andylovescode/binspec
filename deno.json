@@ -4,7 +4,7 @@
 		".": "./src/mod.ts"
 	},
 	"license": "WTFPL",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"tasks": {
 		"dev": "deno run --watch --allow-all ./src/mod.ts ./example/spec.ts ./example/spec.gen.ts",
 		"fl": "deno lint --fix && deno fmt",
@@ -29,7 +29,9 @@
 	},
 	"publish": {
 		"include": [
-			"./src/*"
+			"./src/*",
+			"README.md",
+			"LICENSE"
 		]
 	}
 }
