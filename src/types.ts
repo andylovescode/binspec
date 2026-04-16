@@ -320,6 +320,9 @@ export function enumerated(name: string): Enum {
 	return new Enum(name)
 }
 
+/**
+ * Represents a number with flags meaning certain things
+ */
 export class Bitmask implements Type {
 	name: string
 
@@ -388,10 +391,16 @@ export class Bitmask implements Type {
 	}
 }
 
+/**
+ * Create a bitmask type
+ */
 export function bitmask(name: string): Bitmask {
 	return new Bitmask(name)
 }
 
+/**
+ * Create an array type that reaches until EOF (breaks if not at EOF)
+ */
 export function eofArray(type: Type): Type {
 	return {
 		name: `${type.name}EofArray`,
@@ -430,6 +439,9 @@ export function eofArray(type: Type): Type {
 	}
 }
 
+/**
+ * Create a null-terminated string type
+ */
 export function nullString(): Type {
 	const byte = u8()
 
