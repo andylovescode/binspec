@@ -334,6 +334,11 @@ export class Bitmask implements Type {
 	fields: [string, number][] = []
 	number: Type = u8()
 
+	withNumberType(type: Type): this {
+		this.number = type
+		return this
+	}
+
 	field(name: string, bits: number): this {
 		this.fields.push([name, bits])
 		return this
