@@ -189,7 +189,7 @@ export class Pack implements Type {
 		let result = "{"
 
 		for (const [field, type] of this.fields) {
-			result += `${field}:${type.createType()},`
+			result += `${field}:${type.name},`
 		}
 
 		result += `type:${JSON.stringify(this.name)}`
