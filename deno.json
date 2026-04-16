@@ -7,9 +7,8 @@
 	"license": "WTFPL",
 	"version": "0.4.0",
 	"tasks": {
-		"dev": "deno run --watch --allow-all ./src/cli.ts ./example/spec.ts ./example/spec.gen.ts",
-		"fl": "deno lint --fix && deno fmt",
-		"devfmt": "deno fmt --watch"
+		"dev": "deno run --watch --allow-all ./src/cli.ts ./example/spec.ts ./example/spec.gen.ts & deno fmt --watch",
+		"fl": "deno lint --fix && deno fmt"
 	},
 	"fmt": {
 		"useTabs": true,
