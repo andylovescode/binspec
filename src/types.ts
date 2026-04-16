@@ -318,3 +318,70 @@ export function struct(name: string): Pack {
 export function enumerated(name: string): Enum {
 	return new Enum(name)
 }
+
+export class Bitmask implements Type {
+	name: string
+
+	constructor(name: string) {
+		this.name = name
+	}
+
+	get references(): Type[] {
+		return [this.number]
+	}
+
+	fields: [string, number][] = []
+	number: Type = u8()
+
+	field(name: string, bits: number): this {
+		this.fields.push([name, bits])
+		return this
+	}
+	createParser(props: IOContext): string[] {
+		const result: string[] = []
+
+		result.push(
+			`const num = ${
+				props.getTypeParseName(this.number)
+			}(${props.contextName})`,
+		)
+
+		result.push(`return {`)
+		for (const [field, bits] of this.fields) {
+			result.push(`${field}: (num & ${bits}) === ${bits},`)
+		}
+		result.push(`}`)
+
+		return result
+	}
+	createWriter(props: IOContext): string[] {
+		const result: string[] = []
+
+		let num = `0`
+
+		for (const [field, bits] of this.fields) {
+			num += `| (val.${field} ? ${bits} : 0)`
+		}
+
+		result.push(
+			`${props.getTypeWriteName(this.number)}(${num},${props.contextName})`,
+		)
+
+		return result
+	}
+	createType(): string {
+		let result = `{`
+
+		for (const [field] of this.fields) {
+			result += `${field}: boolean,`
+		}
+
+		result += `}`
+
+		return result
+	}
+}
+
+export function bitmask(name: string): Bitmask {
+	return new Bitmask(name)
+}
