@@ -1,5 +1,12 @@
 import { eofArray } from "@andylovescode/binspec"
-import { bitmask, enumerated, f64, struct, u64 } from "../src/types.ts"
+import {
+	bitmask,
+	enumerated,
+	f64,
+	nullString,
+	struct,
+	u64,
+} from "../src/types.ts"
 
 const testBitmask = bitmask("TestingBitmask")
 	.field("a", 0b00000001)
@@ -14,6 +21,7 @@ const testBitmask = bitmask("TestingBitmask")
 const pingUnix = struct("PingUnix")
 	.field("timestampNs", u64())
 	.field("bmask", testBitmask)
+	.field("str", nullString())
 
 // don't do this in production, this is a dumb way of notating time
 const pingSecondsSince2000 = struct("PingSecondsSince2000")

@@ -1,5 +1,6 @@
 import { assert } from "@std/assert"
 import type { IOContext, Type } from "./mod.ts"
+import { isContext } from "node:vm"
 
 function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 	const power = Math.log2(bits)
@@ -421,5 +422,49 @@ export function eofArray(type: Type): Type {
 			return `${type.name}[]`
 		},
 		references: [type],
+	}
+}
+
+export function nullString(): Type {
+	const byte = u8()
+
+	return {
+		name: "NullString",
+		createParser(props: IOContext): string[] {
+			const result = []
+
+			result.push(
+				`const endLocation = ${props.contextName}.buffer.indexOf(0, ${props.contextName}.ptr)`,
+			)
+
+			result.push(
+				`const bytes = ${props.contextName}.buffer.slice(${props.contextName}.ptr, endLocation)`,
+			)
+
+			result.push(`${props.contextName}.ptr = endLocation + 1`)
+
+			result.push(`return new TextDecoder().decode(bytes)`)
+
+			return result
+		},
+		createWriter(props: IOContext): string[] {
+			const result = []
+
+			result.push(`const bytes = new TextEncoder().encode(val)`)
+
+			result.push(
+				`${props.contextName}.buffer.set(bytes,${props.contextName}.ptr)`,
+			)
+			result.push(
+				`${props.contextName}.buffer.set([0], ${props.contextName}.ptr + bytes.length)`,
+			)
+			result.push(`${props.contextName}.ptr += bytes.length + 1`)
+
+			return result
+		},
+		references: [byte],
+		createType(): string {
+			return `string`
+		},
 	}
 }

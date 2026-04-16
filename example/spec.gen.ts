@@ -98,17 +98,19 @@ export function writeUnsigned8(
 export type PingUnix = {
 	timestampNs: Unsigned64
 	bmask: TestingBitmask
+	str: NullString
 	type: "PingUnix"
 }
 export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	const [timestampNs, bmask] = [
+	const [timestampNs, bmask, str] = [
 		parseUnsigned64(context),
 		parseTestingBitmask(context),
+		parseNullString(context),
 	]
-	return { timestampNs, bmask, type: "PingUnix" }
+	return { timestampNs, bmask, str, type: "PingUnix" }
 }
 export function writePingUnix(
 	val: PingUnix,
@@ -119,6 +121,7 @@ export function writePingUnix(
 	}
 	writeUnsigned64(val.timestampNs, context)
 	writeTestingBitmask(val.bmask, context)
+	writeNullString(val.str, context)
 	return context.buffer.slice(0, context.ptr)
 }
 
@@ -187,6 +190,30 @@ export function writeTestingBitmask(
 			(val.h ? 128 : 0),
 		context,
 	)
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	NullString
+*/
+export type NullString = string
+export function parseNullString(parseInput: IO | Uint8Array): NullString {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const endLocation = context.buffer.indexOf(0, context.ptr)
+	const bytes = context.buffer.slice(context.ptr, endLocation)
+	context.ptr = endLocation + 1
+	return new TextDecoder().decode(bytes)
+}
+export function writeNullString(
+	val: NullString,
+	context: IO = createIOContext(),
+): Uint8Array {
+	const bytes = new TextEncoder().encode(val)
+	context.buffer.set(bytes, context.ptr)
+	context.buffer.set([0], context.ptr + bytes.length)
+	context.ptr += bytes.length + 1
 	return context.buffer.slice(0, context.ptr)
 }
 
