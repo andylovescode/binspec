@@ -1,3 +1,4 @@
+import { eofArray } from "@andylovescode/binspec"
 import { bitmask, enumerated, f64, struct, u64 } from "../src/types.ts"
 
 const testBitmask = bitmask("TestingBitmask")
@@ -22,4 +23,6 @@ const ping = enumerated("Ping")
 	.variant(0, pingUnix)
 	.variant(420, pingSecondsSince2000)
 
-export default [ping]
+const packetBuffer = eofArray(ping)
+
+export default [packetBuffer]

@@ -385,3 +385,41 @@ export class Bitmask implements Type {
 export function bitmask(name: string): Bitmask {
 	return new Bitmask(name)
 }
+
+export function eofArray(type: Type): Type {
+	return {
+		name: `${type.name}EofArray`,
+		createParser(props: IOContext): string[] {
+			const result: string[] = []
+
+			result.push(`const result = []`)
+
+			result.push(`while (!${props.contextName}.eof) {`)
+
+			result.push(
+				`result.push(${props.getTypeParseName(type)}(${props.contextName}))`,
+			)
+
+			result.push(`}`)
+
+			result.push(`return result`)
+
+			return result
+		},
+		createWriter(props: IOContext): string[] {
+			const result: string[] = []
+
+			result.push(`for (const item of val) {`)
+
+			result.push(`${props.getTypeWriteName(type)}(item,${props.contextName})`)
+
+			result.push(`}`)
+
+			return result
+		},
+		createType(): string {
+			return `${type.name}[]`
+		},
+		references: [type],
+	}
+}

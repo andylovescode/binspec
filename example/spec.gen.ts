@@ -3,6 +3,7 @@ type IO = {
 	buffer: Uint8Array
 	dataView: DataView
 	littleEndian: boolean
+	eof: boolean
 }
 function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {
 	return {
@@ -10,7 +11,34 @@ function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {
 		buffer,
 		dataView: new DataView(buffer.buffer),
 		littleEndian: true,
+		get eof() {
+			return this.ptr >= this.buffer.length
+		},
 	}
+}
+
+/*
+	PingEofArray
+*/
+export type PingEofArray = Ping[]
+export function parsePingEofArray(parseInput: IO | Uint8Array): PingEofArray {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const result = []
+	while (!context.eof) {
+		result.push(parsePing(context))
+	}
+	return result
+}
+export function writePingEofArray(
+	val: PingEofArray,
+	context: IO = createIOContext(),
+): Uint8Array {
+	for (const item of val) {
+		writePing(item, context)
+	}
+	return context.buffer.slice(0, context.ptr)
 }
 
 /*
