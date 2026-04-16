@@ -25,3 +25,7 @@ const command = new Command()
 export async function cliMain(): Promise<void> {
 	await command.parse(Deno.args)
 }
+
+if (import.meta.main) {
+	await cliMain()
+}

@@ -1,5 +1,3 @@
-import { cliMain } from "./cli.ts"
-
 /**
  * An internal helper passed to Type to make life easier
  */
@@ -42,7 +40,3 @@ export interface Type {
 }
 
 export * from "./types.ts"
-
-if (import.meta.main) {
-	await cliMain()
-}

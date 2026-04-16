@@ -1,12 +1,13 @@
 {
 	"name": "@andylovescode/binspec",
 	"exports": {
-		".": "./src/mod.ts"
+		".": "./src/mod.ts",
+		"./cli": "./src/cli.ts"
 	},
 	"license": "WTFPL",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"tasks": {
-		"dev": "deno run --watch --allow-all ./src/mod.ts ./example/spec.ts ./example/spec.gen.ts",
+		"dev": "deno run --watch --allow-all ./src/cli.ts ./example/spec.ts ./example/spec.gen.ts",
 		"fl": "deno lint --fix && deno fmt",
 		"devfmt": "deno fmt --watch"
 	},
