@@ -160,9 +160,9 @@ export class Pack implements Type {
 		)
 
 		result.push(
-			`return {${this.fields.map((it) => it[0]).join(",")},type:${
+			`return {type:${
 				JSON.stringify(this.name)
-			}}`,
+			},${this.fields.map((it) => it[0]).join(",")}}`,
 		)
 
 		return result
