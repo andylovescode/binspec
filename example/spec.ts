@@ -1,4 +1,4 @@
-import { eofArray } from "@andylovescode/binspec"
+import { eofArray, string } from "@andylovescode/binspec"
 import {
 	bitmask,
 	enumerated,
@@ -23,6 +23,7 @@ const pingUnix = struct("PingUnix")
 	.field("timestampNs", u64())
 	.field("bmask", testBitmask)
 	.field("str", nullString())
+	.field("vstr", string(varint()))
 	.field("varint", varint(32))
 	.field("varlong", varint(64))
 

@@ -99,6 +99,7 @@ export type PingUnix = {
 	timestampNs: Unsigned64
 	bmask: TestingBitmask
 	str: NullString
+	vstr: String
 	varint: Varint32
 	varlong: Varint64
 	type: "PingUnix"
@@ -107,14 +108,15 @@ export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	const [timestampNs, bmask, str, varint, varlong] = [
+	const [timestampNs, bmask, str, vstr, varint, varlong] = [
 		parseUnsigned64(context),
 		parseTestingBitmask(context),
 		parseNullString(context),
+		parseString(context),
 		parseVarint32(context),
 		parseVarint64(context),
 	]
-	return { timestampNs, bmask, str, varint, varlong, type: "PingUnix" }
+	return { type: "PingUnix", timestampNs, bmask, str, vstr, varint, varlong }
 }
 export function writePingUnix(
 	val: PingUnix,
@@ -126,6 +128,7 @@ export function writePingUnix(
 	writeUnsigned64(val.timestampNs, context)
 	writeTestingBitmask(val.bmask, context)
 	writeNullString(val.str, context)
+	writeString(val.vstr, context)
 	writeVarint32(val.varint, context)
 	writeVarint64(val.varlong, context)
 	return context.buffer.slice(0, context.ptr)
@@ -224,6 +227,29 @@ export function writeNullString(
 }
 
 /*
+	String
+*/
+export type String = string
+export function parseString(parseInput: IO | Uint8Array): String {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const length = parseVarint32(context)
+	const slice = context.buffer.slice(context.ptr, context.ptr + length)
+	context.ptr += length
+	return new TextDecoder().decode(slice)
+}
+export function writeString(
+	val: String,
+	context: IO = createIOContext(),
+): Uint8Array {
+	writeVarint32(val.length)
+	context.buffer.set(new TextEncoder().encode(val), context.ptr)
+	context.ptr += val.length
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
 	Varint32
 */
 export type Varint32 = number
@@ -303,7 +329,7 @@ export function parsePingSecondsSince2000(
 		? createIOContext(parseInput)
 		: parseInput
 	const [secondsSince2000] = [parseFloat64(context)]
-	return { secondsSince2000, type: "PingSecondsSince2000" }
+	return { type: "PingSecondsSince2000", secondsSince2000 }
 }
 export function writePingSecondsSince2000(
 	val: PingSecondsSince2000,

@@ -1,6 +1,6 @@
 import { assert } from "@std/assert"
 import type { IOContext, Type } from "./mod.ts"
-import { isContext } from "node:vm"
+import type { isContext } from "node:vm"
 
 function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 	const power = Math.log2(bits)
@@ -160,9 +160,9 @@ export class Pack implements Type {
 		)
 
 		result.push(
-			`return {type:${
-				JSON.stringify(this.name)
-			},${this.fields.map((it) => it[0]).join(",")}}`,
+			`return {type:${JSON.stringify(this.name)},${
+				this.fields.map((it) => it[0]).join(",")
+			}}`,
 		)
 
 		return result
@@ -554,6 +554,48 @@ export function varint(size: 32 | 64 = 32): Type {
 				return "bigint"
 			}
 			return "number"
+		},
+	}
+}
+
+export function string(lengthType: Type = u32()): Type {
+	return {
+		name: "String",
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`const length = ${
+					props.getTypeParseName(lengthType)
+				}(${props.contextName})`,
+			)
+
+			lines.push(
+				`const slice = ${props.contextName}.buffer.slice(${props.contextName}.ptr, ${props.contextName}.ptr + length)`,
+			)
+
+			lines.push(`${props.contextName}.ptr += length`)
+
+			lines.push(`return new TextDecoder().decode(slice)`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`${props.getTypeWriteName(lengthType)}(val.length)`)
+
+			lines.push(
+				`${props.contextName}.buffer.set(new TextEncoder().encode(val), ${props.contextName}.ptr)`,
+			)
+
+			lines.push(`${props.contextName}.ptr += val.length`)
+
+			return lines
+		},
+		references: [],
+		createType(): string {
+			return "string"
 		},
 	}
 }
