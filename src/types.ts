@@ -485,3 +485,75 @@ export function nullString(): Type {
 		},
 	}
 }
+
+/**
+ * Create the type for a varint
+ * @param size The bit size of the varint
+ * @returns A varint type
+ */
+export function varint(size: 32 | 64 = 32): Type {
+	const big = size === 64
+	const segment = big ? "0x7Fn" : "0x7F"
+	const cont = big ? "0x80n" : "0x80"
+
+	return {
+		name: `Varint${size}`,
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`let num = 0${big ? "n" : ""}`)
+
+			lines.push("while (true) {")
+
+			lines.push(
+				`const current = ${big ? "BigInt(" : ""}${props.contextName}.buffer[${
+					props.skip(1)
+				}]${big ? ")" : ""}`,
+			)
+
+			lines.push(`if (current & ${cont}) num <<= 7${big ? "n" : ""}`)
+
+			lines.push(`num += current & ${segment}`)
+
+			lines.push(`if (!(current & ${cont})) break;`)
+
+			lines.push(`}`)
+
+			lines.push(`return num`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`let state = val`)
+
+			lines.push(`while (true) {`)
+
+			lines.push(`if (state < 128) {`)
+			lines.push(
+				`${props.contextName}.buffer[${props.skip(1)}] = Number(state)`,
+			)
+			lines.push(`break`)
+			lines.push(`}`)
+
+			lines.push(
+				`${props.contextName}.buffer[${
+					props.skip(1)
+				}] = Number((state & ${segment}) | ${cont})`,
+			)
+			lines.push(`state ${big ? ">>=" : ">>>="} 7${big ? "n" : ""}`)
+
+			lines.push(`}`)
+
+			return lines
+		},
+		references: [],
+		createType(): string {
+			if (big) {
+				return "bigint"
+			}
+			return "number"
+		},
+	}
+}

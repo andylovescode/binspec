@@ -6,6 +6,7 @@ import {
 	nullString,
 	struct,
 	u64,
+	varint,
 } from "../src/types.ts"
 
 const testBitmask = bitmask("TestingBitmask")
@@ -22,6 +23,8 @@ const pingUnix = struct("PingUnix")
 	.field("timestampNs", u64())
 	.field("bmask", testBitmask)
 	.field("str", nullString())
+	.field("varint", varint(32))
+	.field("varlong", varint(64))
 
 // don't do this in production, this is a dumb way of notating time
 const pingSecondsSince2000 = struct("PingSecondsSince2000")

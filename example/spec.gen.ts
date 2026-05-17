@@ -99,18 +99,22 @@ export type PingUnix = {
 	timestampNs: Unsigned64
 	bmask: TestingBitmask
 	str: NullString
+	varint: Varint32
+	varlong: Varint64
 	type: "PingUnix"
 }
 export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	const [timestampNs, bmask, str] = [
+	const [timestampNs, bmask, str, varint, varlong] = [
 		parseUnsigned64(context),
 		parseTestingBitmask(context),
 		parseNullString(context),
+		parseVarint32(context),
+		parseVarint64(context),
 	]
-	return { timestampNs, bmask, str, type: "PingUnix" }
+	return { timestampNs, bmask, str, varint, varlong, type: "PingUnix" }
 }
 export function writePingUnix(
 	val: PingUnix,
@@ -122,6 +126,8 @@ export function writePingUnix(
 	writeUnsigned64(val.timestampNs, context)
 	writeTestingBitmask(val.bmask, context)
 	writeNullString(val.str, context)
+	writeVarint32(val.varint, context)
+	writeVarint64(val.varlong, context)
 	return context.buffer.slice(0, context.ptr)
 }
 
@@ -214,6 +220,72 @@ export function writeNullString(
 	context.buffer.set(bytes, context.ptr)
 	context.buffer.set([0], context.ptr + bytes.length)
 	context.ptr += bytes.length + 1
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	Varint32
+*/
+export type Varint32 = number
+export function parseVarint32(parseInput: IO | Uint8Array): Varint32 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	let num = 0
+	while (true) {
+		const current = context.buffer[context.ptr++]
+		if (current & 0x80) num <<= 7
+		num += current & 0x7F
+		if (!(current & 0x80)) break
+	}
+	return num
+}
+export function writeVarint32(
+	val: Varint32,
+	context: IO = createIOContext(),
+): Uint8Array {
+	let state = val
+	while (true) {
+		if (state < 128) {
+			context.buffer[context.ptr++] = Number(state)
+			break
+		}
+		context.buffer[context.ptr++] = Number((state & 0x7F) | 0x80)
+		state >>>= 7
+	}
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	Varint64
+*/
+export type Varint64 = bigint
+export function parseVarint64(parseInput: IO | Uint8Array): Varint64 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	let num = 0n
+	while (true) {
+		const current = BigInt(context.buffer[context.ptr++])
+		if (current & 0x80n) num <<= 7n
+		num += current & 0x7Fn
+		if (!(current & 0x80n)) break
+	}
+	return num
+}
+export function writeVarint64(
+	val: Varint64,
+	context: IO = createIOContext(),
+): Uint8Array {
+	let state = val
+	while (true) {
+		if (state < 128) {
+			context.buffer[context.ptr++] = Number(state)
+			break
+		}
+		context.buffer[context.ptr++] = Number((state & 0x7Fn) | 0x80n)
+		state >>= 7n
+	}
 	return context.buffer.slice(0, context.ptr)
 }
 
