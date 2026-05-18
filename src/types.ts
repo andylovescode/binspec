@@ -492,13 +492,15 @@ export function varint(size: 32 | 64 = 32): Type {
 	const big = size === 64
 	const segment = big ? "0x7Fn" : "0x7F"
 	const cont = big ? "0x80n" : "0x80"
+	const n = big ? "n" : ""
 
 	return {
 		name: `Varint${size}`,
 		createParser(props: IOContext): string[] {
 			const lines: string[] = []
 
-			lines.push(`let num = 0${big ? "n" : ""}`)
+			lines.push(`let num = 0${n}`)
+			lines.push(`let pos = 0${n}`)
 
 			lines.push("while (true) {")
 
@@ -508,9 +510,9 @@ export function varint(size: 32 | 64 = 32): Type {
 				}]${big ? ")" : ""}`,
 			)
 
-			lines.push(`if (current & ${cont}) num <<= 7${big ? "n" : ""}`)
+			lines.push(`if (current & ${cont}) pos += 7${n}`)
 
-			lines.push(`num |= current & ${segment}`)
+			lines.push(`num |= (current & ${segment}) << pos`)
 
 			lines.push(`if (!(current & ${cont})) break;`)
 
@@ -539,7 +541,7 @@ export function varint(size: 32 | 64 = 32): Type {
 					props.skip(1)
 				}] = Number((state & ${segment}) | ${cont})`,
 			)
-			lines.push(`state ${big ? ">>=" : ">>>="} 7${big ? "n" : ""}`)
+			lines.push(`state ${big ? ">>=" : ">>>="} 7${n}`)
 
 			lines.push(`}`)
 
