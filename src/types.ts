@@ -580,7 +580,11 @@ export function string(lengthType: Type = u32()): Type {
 		createWriter(props: IOContext): string[] {
 			const lines: string[] = []
 
-			lines.push(`${props.getTypeWriteName(lengthType)}(val.length)`)
+			lines.push(
+				`${
+					props.getTypeWriteName(lengthType)
+				}(val.length,${props.contextName})`,
+			)
 
 			lines.push(
 				`${props.contextName}.buffer.set(new TextEncoder().encode(val), ${props.contextName}.ptr)`,

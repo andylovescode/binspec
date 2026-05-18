@@ -245,7 +245,7 @@ export function writeStringVarint32(
 	val: StringVarint32,
 	context: IO = createIOContext(),
 ): Uint8Array {
-	writeVarint32(val.length)
+	writeVarint32(val.length, context)
 	context.buffer.set(new TextEncoder().encode(val), context.ptr)
 	context.ptr += val.length
 	return context.buffer.slice(0, context.ptr)
