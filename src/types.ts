@@ -1,6 +1,5 @@
 import { assert } from "@std/assert"
 import type { IOContext, Type } from "./mod.ts"
-import type { isContext } from "node:vm"
 
 function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 	const power = Math.log2(bits)
@@ -443,8 +442,6 @@ export function eofArray(type: Type): Type {
  * Create a null-terminated string type
  */
 export function nullString(): Type {
-	const byte = u8()
-
 	return {
 		name: "NullString",
 		createParser(props: IOContext): string[] {
@@ -479,7 +476,7 @@ export function nullString(): Type {
 
 			return result
 		},
-		references: [byte],
+		references: [],
 		createType(): string {
 			return `string`
 		},
@@ -560,7 +557,7 @@ export function varint(size: 32 | 64 = 32): Type {
 
 export function string(lengthType: Type = u32()): Type {
 	return {
-		name: "String",
+		name: "String" + lengthType.name,
 		createParser(props: IOContext): string[] {
 			const lines: string[] = []
 

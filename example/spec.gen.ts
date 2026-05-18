@@ -99,7 +99,7 @@ export type PingUnix = {
 	timestampNs: Unsigned64
 	bmask: TestingBitmask
 	str: NullString
-	vstr: String
+	vstr: StringVarint32
 	varint: Varint32
 	varlong: Varint64
 	type: "PingUnix"
@@ -112,7 +112,7 @@ export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 		parseUnsigned64(context),
 		parseTestingBitmask(context),
 		parseNullString(context),
-		parseString(context),
+		parseStringVarint32(context),
 		parseVarint32(context),
 		parseVarint64(context),
 	]
@@ -128,7 +128,7 @@ export function writePingUnix(
 	writeUnsigned64(val.timestampNs, context)
 	writeTestingBitmask(val.bmask, context)
 	writeNullString(val.str, context)
-	writeString(val.vstr, context)
+	writeStringVarint32(val.vstr, context)
 	writeVarint32(val.varint, context)
 	writeVarint64(val.varlong, context)
 	return context.buffer.slice(0, context.ptr)
@@ -227,10 +227,12 @@ export function writeNullString(
 }
 
 /*
-	String
+	StringVarint32
 */
-export type String = string
-export function parseString(parseInput: IO | Uint8Array): String {
+export type StringVarint32 = string
+export function parseStringVarint32(
+	parseInput: IO | Uint8Array,
+): StringVarint32 {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
@@ -239,8 +241,8 @@ export function parseString(parseInput: IO | Uint8Array): String {
 	context.ptr += length
 	return new TextDecoder().decode(slice)
 }
-export function writeString(
-	val: String,
+export function writeStringVarint32(
+	val: StringVarint32,
 	context: IO = createIOContext(),
 ): Uint8Array {
 	writeVarint32(val.length)
