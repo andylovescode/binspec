@@ -56,7 +56,7 @@ export function parsePing(parseInput: IO | Uint8Array): Ping {
 	if (sign === 420) {
 		return parsePingSecondsSince2000(context)
 	}
-	throw new Error("invalid variant")
+	throw new Error("invalid variant " + sign)
 }
 export function writePing(
 	val: Ping,
@@ -263,7 +263,7 @@ export function parseVarint32(parseInput: IO | Uint8Array): Varint32 {
 	while (true) {
 		const current = context.buffer[context.ptr++]
 		if (current & 0x80) num <<= 7
-		num += current & 0x7F
+		num |= current & 0x7F
 		if (!(current & 0x80)) break
 	}
 	return num
@@ -296,7 +296,7 @@ export function parseVarint64(parseInput: IO | Uint8Array): Varint64 {
 	while (true) {
 		const current = BigInt(context.buffer[context.ptr++])
 		if (current & 0x80n) num <<= 7n
-		num += current & 0x7Fn
+		num |= current & 0x7Fn
 		if (!(current & 0x80n)) break
 	}
 	return num

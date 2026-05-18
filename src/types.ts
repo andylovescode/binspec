@@ -268,7 +268,7 @@ export class Enum implements Type {
 			result.push(`}`)
 		}
 
-		result.push(`throw new Error('invalid variant');`)
+		result.push(`throw new Error('invalid variant ' + sign);`)
 
 		return result
 	}
@@ -510,7 +510,7 @@ export function varint(size: 32 | 64 = 32): Type {
 
 			lines.push(`if (current & ${cont}) num <<= 7${big ? "n" : ""}`)
 
-			lines.push(`num += current & ${segment}`)
+			lines.push(`num |= current & ${segment}`)
 
 			lines.push(`if (!(current & ${cont})) break;`)
 
