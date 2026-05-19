@@ -26,11 +26,11 @@ export class TypefileWriter {
 		const lines: string[] = []
 
 		lines.push(
-			`type IO = { ptr: number; buffer: Uint8Array; dataView: DataView; littleEndian: boolean; eof: boolean }`,
+			`export type IO = { ptr: number; buffer: Uint8Array; dataView: DataView; littleEndian: boolean; eof: boolean }`,
 		)
 
 		lines.push(
-			`function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {`,
+			`export function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {`,
 		)
 		lines.push(
 			`return { ptr: 0, buffer, dataView: new DataView(buffer.buffer), littleEndian: true, get eof() { return this.ptr >= this.buffer.length } }`,

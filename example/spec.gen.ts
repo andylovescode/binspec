@@ -1,11 +1,13 @@
-type IO = {
+export type IO = {
 	ptr: number
 	buffer: Uint8Array
 	dataView: DataView
 	littleEndian: boolean
 	eof: boolean
 }
-function createIOContext(buffer: Uint8Array = new Uint8Array(10000)): IO {
+export function createIOContext(
+	buffer: Uint8Array = new Uint8Array(10000),
+): IO {
 	return {
 		ptr: 0,
 		buffer,
