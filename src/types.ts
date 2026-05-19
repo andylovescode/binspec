@@ -30,7 +30,7 @@ function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 		name,
 		references: [],
 		createType() {
-			return "number"
+			return bigInt ? "bigint" : "number"
 		},
 		createParser(ctx) {
 			let result = `${ctx.contextName}.dataView.get`
@@ -53,10 +53,6 @@ function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 
 			result += ")"
 
-			if (bigInt) {
-				result = `Number(${result})`
-			}
-
 			return ["return " + result]
 		},
 		createWriter(ctx) {
@@ -76,11 +72,7 @@ function createNumberType(mode: "f" | "i" | "u", bits: number): Type {
 
 			result += `,`
 
-			if (bigInt) {
-				result += `BigInt(val)`
-			} else {
-				result += `val`
-			}
+			result += "val"
 
 			if (bytes > 1) {
 				result += `, ${ctx.contextName}.littleEndian`

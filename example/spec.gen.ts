@@ -139,13 +139,14 @@ export function writePingUnix(
 /*
 	Unsigned64
 */
-export type Unsigned64 = number
+export type Unsigned64 = bigint
 export function parseUnsigned64(parseInput: IO | Uint8Array): Unsigned64 {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	return Number(
-		context.dataView.getBigUint64((context.ptr += 8) - 8, context.littleEndian),
+	return context.dataView.getBigUint64(
+		(context.ptr += 8) - 8,
+		context.littleEndian,
 	)
 }
 export function writeUnsigned64(
@@ -154,7 +155,7 @@ export function writeUnsigned64(
 ): Uint8Array {
 	context.dataView.setBigUint64(
 		(context.ptr += 8) - 8,
-		BigInt(val),
+		val,
 		context.littleEndian,
 	)
 	return context.buffer.slice(0, context.ptr)
