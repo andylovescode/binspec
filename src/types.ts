@@ -549,6 +549,10 @@ export function varint(size: 32 | 64 = 32): Type {
 	}
 }
 
+/**
+ * @param lengthType The type used to enclude the string length
+ * @returns A string type
+ */
 export function string(lengthType: Type = u32()): Type {
 	return {
 		name: "String" + lengthType.name,
@@ -580,8 +584,60 @@ export function string(lengthType: Type = u32()): Type {
 				}(val.length,${props.contextName})`,
 			)
 
+			lines.push(`const encoded = new TextEncoder().encode(val)`)
+
 			lines.push(
-				`${props.contextName}.buffer.set(new TextEncoder().encode(val), ${props.contextName}.ptr)`,
+				`${props.contextName}.buffer.set(encoded, ${props.contextName}.ptr)`,
+			)
+
+			lines.push(`${props.contextName}.ptr += encoded.length`)
+
+			return lines
+		},
+		references: [],
+		createType(): string {
+			return "string"
+		},
+	}
+}
+
+/**
+ * @param lengthType The type used to enclude the buffer length
+ * @returns A Uint8Array type
+ */
+export function buffer(lengthType: Type = u32()): Type {
+	return {
+		name: "Buffer" + lengthType.name,
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`const length = ${
+					props.getTypeParseName(lengthType)
+				}(${props.contextName})`,
+			)
+
+			lines.push(
+				`const slice = ${props.contextName}.buffer.slice(${props.contextName}.ptr, ${props.contextName}.ptr + length)`,
+			)
+
+			lines.push(`${props.contextName}.ptr += length`)
+
+			lines.push(`return slice`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`${
+					props.getTypeWriteName(lengthType)
+				}(val.length,${props.contextName})`,
+			)
+
+			lines.push(
+				`${props.contextName}.buffer.set(val, ${props.contextName}.ptr)`,
 			)
 
 			lines.push(`${props.contextName}.ptr += val.length`)
@@ -590,7 +646,58 @@ export function string(lengthType: Type = u32()): Type {
 		},
 		references: [],
 		createType(): string {
-			return "string"
+			return "Uint8Array"
+		},
+	}
+}
+
+/**
+ * @param item The type of each item in the array
+ * @param length The type used to encode the array length
+ * @returns An array type
+ */
+export function array(item: Type, length: Type = u32()): Type {
+	return {
+		name: `${item.name}Array${length.name}`,
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`const length = ${
+					props.getTypeParseName(length)
+				}(${props.contextName})`,
+			)
+
+			lines.push(`const result = []`)
+
+			lines.push(`for (let i = 0; i < length; i++) {`)
+
+			lines.push(
+				`result.push(${props.getTypeParseName(item)}(${props.contextName}))`,
+			)
+
+			lines.push(`}`)
+
+			lines.push(`return result`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`${props.getTypeWriteName(length)}(val.length,${props.contextName})`,
+			)
+
+			lines.push(`for (const item of val) {`)
+			lines.push(`${props.getTypeWriteName(item)}(item,${props.contextName})`)
+			lines.push(`}`)
+
+			return lines
+		},
+		references: [item, length],
+		createType(): string {
+			return `${item.name}[]`
 		},
 	}
 }

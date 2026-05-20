@@ -20,6 +20,34 @@ export function createIOContext(
 }
 
 /*
+	PingEofArrayArrayUnsigned32
+*/
+export type PingEofArrayArrayUnsigned32 = PingEofArray[]
+export function parsePingEofArrayArrayUnsigned32(
+	parseInput: IO | Uint8Array,
+): PingEofArrayArrayUnsigned32 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const length = parseUnsigned32(context)
+	const result = []
+	for (let i = 0; i < length; i++) {
+		result.push(parsePingEofArray(context))
+	}
+	return result
+}
+export function writePingEofArrayArrayUnsigned32(
+	val: PingEofArrayArrayUnsigned32,
+	context: IO = createIOContext(),
+): Uint8Array {
+	writeUnsigned32(val.length, context)
+	for (const item of val) {
+		writePingEofArray(item, context)
+	}
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
 	PingEofArray
 */
 export type PingEofArray = Ping[]
@@ -249,8 +277,9 @@ export function writeStringVarint32(
 	context: IO = createIOContext(),
 ): Uint8Array {
 	writeVarint32(val.length, context)
-	context.buffer.set(new TextEncoder().encode(val), context.ptr)
-	context.ptr += val.length
+	const encoded = new TextEncoder().encode(val)
+	context.buffer.set(encoded, context.ptr)
+	context.ptr += encoded.length
 	return context.buffer.slice(0, context.ptr)
 }
 
@@ -367,5 +396,26 @@ export function writeFloat64(
 	context: IO = createIOContext(),
 ): Uint8Array {
 	context.dataView.setFloat64((context.ptr += 8) - 8, val, context.littleEndian)
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	Unsigned32
+*/
+export type Unsigned32 = number
+export function parseUnsigned32(parseInput: IO | Uint8Array): Unsigned32 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	return context.dataView.getUint32(
+		(context.ptr += 4) - 4,
+		context.littleEndian,
+	)
+}
+export function writeUnsigned32(
+	val: Unsigned32,
+	context: IO = createIOContext(),
+): Uint8Array {
+	context.dataView.setUint32((context.ptr += 4) - 4, val, context.littleEndian)
 	return context.buffer.slice(0, context.ptr)
 }

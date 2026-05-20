@@ -1,5 +1,6 @@
 import { eofArray, string } from "@andylovescode/binspec"
 import {
+	array,
 	bitmask,
 	enumerated,
 	f64,
@@ -35,6 +36,6 @@ const ping = enumerated("Ping")
 	.variant(0, pingUnix)
 	.variant(420, pingSecondsSince2000)
 
-const packetBuffer = eofArray(ping)
+const packetBuffer = array(eofArray(ping))
 
 export default [packetBuffer]
