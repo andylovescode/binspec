@@ -502,11 +502,9 @@ export function varint(size: 32 | 64 = 32): Type {
 				}]${big ? ")" : ""}`,
 			)
 
-			lines.push(`if (current & ${cont}) pos += 7${n}`)
-
 			lines.push(`num |= (current & ${segment}) << pos`)
 
-			lines.push(`if (!(current & ${cont})) break;`)
+			lines.push(`if (current & ${cont}) { pos += 7${n} } else break;`)
 
 			lines.push(`}`)
 

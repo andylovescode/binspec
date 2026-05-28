@@ -295,9 +295,9 @@ export function parseVarint32(parseInput: IO | Uint8Array): Varint32 {
 	let pos = 0
 	while (true) {
 		const current = context.buffer[context.ptr++]
-		if (current & 0x80) pos += 7
 		num |= (current & 0x7F) << pos
-		if (!(current & 0x80)) break
+		if (current & 0x80) pos += 7
+		else break
 	}
 	return num
 }
@@ -329,9 +329,9 @@ export function parseVarint64(parseInput: IO | Uint8Array): Varint64 {
 	let pos = 0n
 	while (true) {
 		const current = BigInt(context.buffer[context.ptr++])
-		if (current & 0x80n) pos += 7n
 		num |= (current & 0x7Fn) << pos
-		if (!(current & 0x80n)) break
+		if (current & 0x80n) pos += 7n
+		else break
 	}
 	return num
 }
