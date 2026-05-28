@@ -1,10 +1,13 @@
-import { eofArray, string } from "@andylovescode/binspec"
 import {
 	array,
 	bitmask,
+	boolean,
 	enumerated,
+	eofArray,
 	f64,
 	nullString,
+	optional,
+	string,
 	struct,
 	u64,
 	varint,
@@ -26,7 +29,8 @@ const pingUnix = struct("PingUnix")
 	.field("str", nullString())
 	.field("vstr", string(varint()))
 	.field("varint", varint(32))
-	.field("varlong", varint(64))
+	.field("istrue", boolean())
+	.field("optionalvarlong", optional(varint(64)))
 
 // don't do this in production, this is a dumb way of notating time
 const pingSecondsSince2000 = struct("PingSecondsSince2000")

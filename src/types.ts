@@ -699,3 +699,69 @@ export function array(item: Type, length: Type = u32()): Type {
 		},
 	}
 }
+
+/**
+ * @returns The ubiquitous true or false type
+ */
+export function boolean(): Type {
+	return {
+		name: "Boolean",
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`return ${props.contextName}.buffer[${props.skip(1)}] !== 0`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`${props.contextName}.buffer[${props.skip(1)}] = val ? 1 : 0`)
+
+			return lines
+		},
+		references: [],
+		createType(): string {
+			return "boolean"
+		},
+	}
+}
+
+export function optional(ty: Type): Type {
+	const bool = boolean()
+
+	return {
+		name: "Optional" + ty.name,
+		createParser(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(
+				`const present = ${props.getTypeParseName(bool)}(${props.contextName})`,
+			)
+
+			lines.push(`if (present) {`)
+			lines.push(`return ${props.getTypeParseName(ty)}(${props.contextName})`)
+			lines.push(`} else {`)
+			lines.push(`return undefined`)
+			lines.push(`}`)
+
+			return lines
+		},
+		createWriter(props: IOContext): string[] {
+			const lines: string[] = []
+
+			lines.push(`if (val === undefined) {`)
+			lines.push(`${props.contextName}.buffer[${props.skip(1)}] = 0`)
+			lines.push(`} else {`)
+			lines.push(`${props.contextName}.buffer[${props.skip(1)}] = 1`)
+			lines.push(`${props.getTypeWriteName(ty)}(val, ${props.contextName})`)
+			lines.push(`}`)
+
+			return lines
+		},
+		references: [ty, bool],
+		createType(): string {
+			return `${ty.name} | undefined`
+		},
+	}
+}

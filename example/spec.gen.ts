@@ -131,22 +131,33 @@ export type PingUnix = {
 	str: NullString
 	vstr: StringVarint32
 	varint: Varint32
-	varlong: Varint64
+	istrue: Boolean
+	optionalvarlong: OptionalVarint64
 	type: "PingUnix"
 }
 export function parsePingUnix(parseInput: IO | Uint8Array): PingUnix {
 	const context = parseInput instanceof Uint8Array
 		? createIOContext(parseInput)
 		: parseInput
-	const [timestampNs, bmask, str, vstr, varint, varlong] = [
+	const [timestampNs, bmask, str, vstr, varint, istrue, optionalvarlong] = [
 		parseUnsigned64(context),
 		parseTestingBitmask(context),
 		parseNullString(context),
 		parseStringVarint32(context),
 		parseVarint32(context),
-		parseVarint64(context),
+		parseBoolean(context),
+		parseOptionalVarint64(context),
 	]
-	return { type: "PingUnix", timestampNs, bmask, str, vstr, varint, varlong }
+	return {
+		type: "PingUnix",
+		timestampNs,
+		bmask,
+		str,
+		vstr,
+		varint,
+		istrue,
+		optionalvarlong,
+	}
 }
 export function writePingUnix(
 	val: PingUnix,
@@ -160,7 +171,8 @@ export function writePingUnix(
 	writeNullString(val.str, context)
 	writeStringVarint32(val.vstr, context)
 	writeVarint32(val.varint, context)
-	writeVarint64(val.varlong, context)
+	writeBoolean(val.istrue, context)
+	writeOptionalVarint64(val.optionalvarlong, context)
 	return context.buffer.slice(0, context.ptr)
 }
 
@@ -313,6 +325,54 @@ export function writeVarint32(
 		}
 		context.buffer[context.ptr++] = Number((state & 0x7F) | 0x80)
 		state >>>= 7
+	}
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	Boolean
+*/
+export type Boolean = boolean
+export function parseBoolean(parseInput: IO | Uint8Array): Boolean {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	return context.buffer[context.ptr++] !== 0
+}
+export function writeBoolean(
+	val: Boolean,
+	context: IO = createIOContext(),
+): Uint8Array {
+	context.buffer[context.ptr++] = val ? 1 : 0
+	return context.buffer.slice(0, context.ptr)
+}
+
+/*
+	OptionalVarint64
+*/
+export type OptionalVarint64 = Varint64 | undefined
+export function parseOptionalVarint64(
+	parseInput: IO | Uint8Array,
+): OptionalVarint64 {
+	const context = parseInput instanceof Uint8Array
+		? createIOContext(parseInput)
+		: parseInput
+	const present = parseBoolean(context)
+	if (present) {
+		return parseVarint64(context)
+	} else {
+		return undefined
+	}
+}
+export function writeOptionalVarint64(
+	val: OptionalVarint64,
+	context: IO = createIOContext(),
+): Uint8Array {
+	if (val === undefined) {
+		context.buffer[context.ptr++] = 0
+	} else {
+		context.buffer[context.ptr++] = 1
+		writeVarint64(val, context)
 	}
 	return context.buffer.slice(0, context.ptr)
 }
